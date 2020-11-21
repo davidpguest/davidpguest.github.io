@@ -1,0 +1,1479 @@
+<head><meta name="author" content="Created with Hot Potatoes by Half-Baked Software, registered to Ted Power."></meta><meta name="keywords" content="Hot Potatoes, Half-Baked Software, Windows, University of Victoria"></meta>
+<title>
+Humanity's Worst Invention
+</title>
+
+<script language="javascript" type="text/javascript">
+
+//<![CDATA[
+
+<!--
+
+// BrowserCheck Object
+
+function BrowserCheck() {
+	var b = navigator.appName
+//HBS extension
+	this.mac = (navigator.appVersion.indexOf('Mac') != -1)
+	if (b=="Netscape") this.b = "ns"
+	else if (b=="Microsoft Internet Explorer") this.b = "ie"
+	else this.b = b
+	this.version = navigator.appVersion
+	this.v = parseInt(this.version)
+	this.ns = (this.b=="ns" && this.v>=4)
+	this.ns4 = (this.b=="ns" && this.v==4)
+	this.ns5 = (this.b=="ns" && this.v==5)
+	this.ie = (this.b=="ie" && this.v>=4)
+	this.ie4 = (this.version.indexOf('MSIE 4')>0)
+	this.ie5 = (this.version.indexOf('MSIE 5')>0)
+	this.min = (this.ns||this.ie)
+	this.CRAPBrowser = (this.ie && this.mac); //Cannot Resolve Addresses Properly
+}
+
+is = new BrowserCheck();
+
+var LocFolder = GetFolder(window.location.href);
+function GetFolder(LocPath){
+	LocPath = ReplaceStuff('\'','%27',LocPath);
+	var i = LocPath.lastIndexOf('/');
+	if (i<0){i=LocPath.lastIndexOf('\\')};
+	return LocPath.substring(0,i);
+}
+
+function CombineURLs(InURL){
+	var i = InURL.indexOf('../');
+	var s = LocFolder;
+	while (i >- 1){
+		s = GetFolder(s);
+		InURL = InURL.substring(3,InURL.length);
+		i = InURL.indexOf('../');
+	}
+	return s + '/' + InURL;
+}
+
+x = new Array();
+function ResolveURLs(InText,Attribute){
+	x.length=0;
+	var Temp = InText.toLowerCase();
+	var z;
+	var AttLen = Attribute.length + 2;
+	var y=Temp.lastIndexOf(Attribute + '="');
+	while (y>-1){
+		var sLoc = y+AttLen;
+		if (Temp.substring(sLoc,sLoc+5) != 'http:'){
+			x[x.length]=new Array();
+			x[x.length-1][0] = sLoc;
+			z = Temp.indexOf('"',sLoc);
+			x[x.length-1][1] = z;
+			x[x.length-1][2] = InText.substring(sLoc,z);
+
+		}
+		Temp = Temp.substring(0,y);
+		y=Temp.lastIndexOf(Attribute + '="');
+	}
+	for (var j=0; j<x.length; j++){
+		InText = InText.substring(0,x[j][0]) + CombineURLs(x[j][2]) + InText.substring(x[j][1], InText.length);
+	}
+	return InText;
+}
+
+function ResolveAllURLs(Stuff){
+	Stuff = ResolveURLs(Stuff,'href');
+	Stuff = ResolveURLs(Stuff,'src');
+	Stuff = ResolveURLs(Stuff,'parent.location');
+	return Stuff;
+}
+
+var Feedback = '';
+var Correct = 'Correct! Well done.';
+var Incorrect = 'Some of your answers are incorrect. Incorrect answers have been left in place for you to change.'; 
+var GiveHint = 'The next correct letter has been added to the answer.';
+var CaseSensitive = false;
+var YourScoreIs = 'Your score is ';
+var Instructions = 'Fill in all the gaps, then press "Check" to check your answers. Use the "Hint" button to get a free letter if an answer is giving you trouble. You can also click on the "[?]" button to get a clue. Note that you will lose points if you ask for hints or clues!';
+var BuiltCloze = '';
+var ExerciseSubtitle = 'Gap-fill exercise';
+var ExerciseTitle = 'Humanity\'s Worst Invention';
+var FirstShow = true;
+var ReadingURL = '';
+
+var PreviousPage = history.length;
+
+
+
+
+
+
+
+var NavBar='';
+
+
+NavBar+='<tr><form name="NavButtons1" action=""><td bgcolor="#000066" align="center">';
+NavBar+='<font face="Geneva,Arial" size="-1">';
+
+NavBar+='<input type="button" value="&lt;=" onclick="parent.GoBack()"></input>';
+
+
+NavBar+='<input type="button" value="Index" onclick=\'parent.location="http://www.roundhill.org.uk"\'></input>';
+
+
+NavBar+='<input type="button" value="=&gt;" onclick=\'parent.location="http://www.roundhill.org.uk"\'></input>';
+NavBar+='</font></td></form></tr>';
+if (is.CRAPBrowser){NavBar=ResolveAllURLs(NavBar);}
+
+
+var TitleCode = '<tr><td align="center" valign="middle" bgcolor="#ffffff">';
+TitleCode += '<font size="+1" face="Geneva,Arial" color="#000033">' + ExerciseTitle + '</font><br />';
+TitleCode += '<font size="-1" face="Geneva,Arial" color="#000033">' + ExerciseSubtitle + '<br />';
+
+TitleCode += '</font></td></tr>';
+
+var WordBox = '';
+
+var ClozeOpener = '<table border="0" width="85%" cellpadding="10">';
+ClozeOpener += '<tr><td valign="top" bgcolor="#bbbbee">';
+ClozeOpener += '<form name="Cloze" onsubmit="return false"><font face="Geneva,Arial" color="#000000">';
+
+var ClozeCloser = '</font></form></td></tr>';
+
+var Buttons = '<tr><td align="center" valign="top" bgcolor="#bbbbee">';
+Buttons += '<form name="Buttons"><font face="Geneva,Arial" color="#000000">';
+Buttons += '<input type="button" value="Check" onclick="parent.CheckAnswers()"></input>';
+
+
+Buttons += '<input type="button" value="Hint" onclick="parent.ShowHint()"></input>';
+
+
+Buttons += '</font></form></td></tr></table>';
+
+var GapCode = '<input type="text" name="[strGapName]" size="[strGapSize]" onFocus="parent.TrackFocus([strItemNum])" value="[strValue]"></input>';
+var ClueButton = '';
+
+ClueButton = '<input type="button" value="[?]" onclick="parent.ShowClue([strItemNum])"></input>';
+
+
+function GoBack(){
+	var BackSkip = history.length - PreviousPage;
+	if (BackSkip > 0){
+		history.go((BackSkip+1)*-1);
+	}
+	else{
+		parent.history.back();
+	}
+}
+
+
+
+
+function BuildExercise(){
+	var OutString = '';
+	var ClozeStuff = '';
+
+	for (var i=0; i<I.length; i++){
+
+//Add the text
+		ClozeStuff += Text[i];
+
+//Create and add the gap
+//If it's already right, then add it in bold:
+		if (State[i][4] == 1){
+			ClozeStuff += '<b>' + State[i][5] + '</b>';
+		}
+		
+		else{
+			GapLen = I[i][1][0][0].length;
+			if (GapLen < 3){GapLen = 3;}
+			Gap = ReplaceStuff('[strGapSize]', GapLen, GapCode);
+			Gap = ReplaceStuff('[strGapName]', 'Gap' + i + '', Gap);
+			Gap = ReplaceStuff('[strItemNum]', i + '', Gap);
+			Gap = ReplaceStuff('[strValue]', State[i][5], Gap);
+			ClozeStuff += Gap;	
+
+//Create and add the clue button
+			if (I[i][2].length > 0){
+				Btn = ReplaceStuff('[strItemNum]', i + '', ClueButton);
+				ClozeStuff += Btn;
+			}
+		}
+	}
+
+//Add the last bit
+	if (Text.length > I.length){
+		ClozeStuff += Text[Text.length-1];
+	}
+
+//Put the final pieces together
+	OutString = ClozeOpener + ClozeStuff + ClozeCloser + Buttons;
+	BuiltCloze = OutString;
+}
+
+function WriteFeedback(Feedback) {
+	if (is.CRAPBrowser){Feedback=ResolveAllURLs(Feedback);}
+//Build the output string
+	var OutString = '';
+	OutString += '<html>';
+	OutString += '<body  background="" bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#0000cc">';
+	OutString += '<center><table border="0" cellpadding="5" cellspacing="1" width="85%">';
+	OutString += NavBar;
+	if (Feedback.length>0){
+		OutString += '<tr><td bgcolor="#bbbbee" align="center">'; 
+		OutString += '<font face="Geneva,Arial" size="-1" color="#000000">';
+		OutString += Feedback;
+		OutString += '</font></td></tr>'
+	}
+	OutString += '</table></center></body></html>';
+//Write it to the frame
+	TopFrame.document.clear();
+	TopFrame.document.open();
+	TopFrame.document.write(OutString);
+	TopFrame.document.close();
+}
+
+function DisplayExercise(){
+//Build the output string
+	var OutString = '';
+	OutString += '<html>';
+	OutString += '<body  background="" bgcolor="#ffffff" text="#000000" link="#0000ff" vlink="#0000cc">';
+	OutString += '<center><table border="0" cellpadding="5" cellspacing="1" width="85%">';
+	OutString += TitleCode; 
+	OutString += '<tr><td bgcolor="#bbbbee" align="center">'; 
+	if (WordBox.length > 0){
+		OutString += WordBox;
+	}
+	OutString += '<font face="Geneva,Arial" size="-1">';
+	OutString += BuiltCloze;
+	OutString += '</font></td></tr>';
+	OutString += NavBar;
+	OutString += '</table></center></body></html>';
+
+	if (is.CRAPBrowser){OutString=ResolveAllURLs(OutString);}
+
+//Write it to the frame
+	BottomFrame.document.clear();
+	BottomFrame.document.open();
+	BottomFrame.document.write(OutString);
+	BottomFrame.document.close();
+}
+
+function ShowClue(ItemNum){
+//alert(ItemNum);
+	State[ItemNum][0] = 1;
+	WriteFeedback(I[ItemNum][2]);
+}
+
+function SaveCurrentAnswers(){
+	for (var i=0; i<I.length; i++){
+		State[i][5] = GetGapValue(i);
+	}
+}
+
+function RestoreCurrentAnswers(){
+	for (var i=0; i<I.length; i++){
+		SetGapValue(i, State[i][5]);
+	}
+}
+
+var CurrentWord = 0;
+
+function ReplaceStuff(Token, Replacement, InString){
+	var i = InString.indexOf(Token);
+	var FirstBit = '';
+	var LastBit = '';
+	while (i>-1){
+		FirstBit = InString.substring(0, i);
+		LastBit = InString.substring(i + Token.length, InString.length);	
+		InString = FirstBit + Replacement + LastBit;
+		i = InString.indexOf(Token);
+	}
+	return InString;
+}
+
+I = new Array();
+
+I[0] = new Array();
+I[0][1] = new Array();
+I[0][1][0] = new Array();
+I[0][1][0][0]='documentaries';
+I[0][2]='TV or radio programmes of a factual kind';
+
+I[1] = new Array();
+I[1][1] = new Array();
+I[1][1][0] = new Array();
+I[1][1][0][0]='far';
+I[1][2]='a long distance';
+
+I[2] = new Array();
+I[2][1] = new Array();
+I[2][1][0] = new Array();
+I[2][1][0][0]='run';
+I[2][2]='flee';
+
+I[3] = new Array();
+I[3][1] = new Array();
+I[3][1][0] = new Array();
+I[3][1][0][0]='resume';
+I[3][2]='continue';
+
+I[4] = new Array();
+I[4][1] = new Array();
+I[4][1][0] = new Array();
+I[4][1][0][0]='dangerous';
+I[4][2]='not safe';
+
+I[5] = new Array();
+I[5][1] = new Array();
+I[5][1][0] = new Array();
+I[5][1][0][0]='fascinated';
+I[5][2]='very interested';
+
+I[6] = new Array();
+I[6][1] = new Array();
+I[6][1][0] = new Array();
+I[6][1][0][0]='oblivious';
+I[6][2]='not noticing';
+
+I[7] = new Array();
+I[7][1] = new Array();
+I[7][1][0] = new Array();
+I[7][1][0][0]='car';
+I[7][2]='automobile';
+
+I[8] = new Array();
+I[8][1] = new Array();
+I[8][1][0] = new Array();
+I[8][1][0][0]='harm';
+I[8][2]='do damage to';
+
+I[9] = new Array();
+I[9][1] = new Array();
+I[9][1][0] = new Array();
+I[9][1][0][0]='death';
+I[9][2]='fatal injury';
+
+I[10] = new Array();
+I[10][1] = new Array();
+I[10][1][0] = new Array();
+I[10][1][0][0]='killed';
+I[10][2]='exterminated';
+
+I[11] = new Array();
+I[11][1] = new Array();
+I[11][1][0] = new Array();
+I[11][1][0][0]='injured';
+I[11][2]='hurt';
+
+I[12] = new Array();
+I[12][1] = new Array();
+I[12][1][0] = new Array();
+I[12][1][0][0]='bothers';
+I[12][2]='troubles';
+
+I[13] = new Array();
+I[13][1] = new Array();
+I[13][1][0] = new Array();
+I[13][1][0][0]='recent';
+I[13][2]='only happening a short time ago';
+
+I[14] = new Array();
+I[14][1] = new Array();
+I[14][1][0] = new Array();
+I[14][1][0][0]='flying';
+I[14][2]='air travel';
+
+I[15] = new Array();
+I[15][1] = new Array();
+I[15][1][0] = new Array();
+I[15][1][0][0]='pollution';
+I[15][2]='air contamination';
+
+I[16] = new Array();
+I[16][1] = new Array();
+I[16][1][0] = new Array();
+I[16][1][0][0]='effects';
+I[16][2]='results';
+
+I[17] = new Array();
+I[17][1] = new Array();
+I[17][1][0] = new Array();
+I[17][1][0][0]='Experts';
+I[17][2]='Specialists';
+
+I[18] = new Array();
+I[18][1] = new Array();
+I[18][1][0] = new Array();
+I[18][1][0][0]='healthy';
+I[18][2]='fit';
+
+I[19] = new Array();
+I[19][1] = new Array();
+I[19][1][0] = new Array();
+I[19][1][0][0]='school';
+I[19][2]='place of study';
+
+I[20] = new Array();
+I[20][1] = new Array();
+I[20][1][0] = new Array();
+I[20][1][0][0]='exercise';
+I[20][2]='physical activity';
+
+I[21] = new Array();
+I[21][1] = new Array();
+I[21][1][0] = new Array();
+I[21][1][0][0]='overweight';
+I[21][2]='too heavy';
+
+I[22] = new Array();
+I[22][1] = new Array();
+I[22][1][0] = new Array();
+I[22][1][0][0]='increase';
+I[22][2]='augmentation';
+
+I[23] = new Array();
+I[23][1] = new Array();
+I[23][1][0] = new Array();
+I[23][1][0][0]='million';
+I[23][2]='a thousand thousand';
+
+I[24] = new Array();
+I[24][1] = new Array();
+I[24][1][0] = new Array();
+I[24][1][0][0]='oil';
+I[24][2]='petroleum';
+
+I[25] = new Array();
+I[25][1] = new Array();
+I[25][1][0] = new Array();
+I[25][1][0][0]='degradation';
+I[25][2]='deterioration';
+
+I[26] = new Array();
+I[26][1] = new Array();
+I[26][1][0] = new Array();
+I[26][1][0][0]='destroy';
+I[26][2]='kill or eliminate';
+
+I[27] = new Array();
+I[27][1] = new Array();
+I[27][1][0] = new Array();
+I[27][1][0][0]='declining';
+I[27][2]='becoming less numerous';
+
+I[28] = new Array();
+I[28][1] = new Array();
+I[28][1][0] = new Array();
+I[28][1][0][0]='extinction';
+I[28][2]='complete elimination';
+
+I[29] = new Array();
+I[29][1] = new Array();
+I[29][1][0] = new Array();
+I[29][1][0][0]='crossing';
+I[29][2]='traversing';
+
+I[30] = new Array();
+I[30][1] = new Array();
+I[30][1][0] = new Array();
+I[30][1][0][0]='toxins';
+I[30][2]='poisons';
+
+I[31] = new Array();
+I[31][1] = new Array();
+I[31][1][0] = new Array();
+I[31][1][0][0]='warning';
+I[31][2]='signal of alarm';
+
+I[32] = new Array();
+I[32][1] = new Array();
+I[32][1][0] = new Array();
+I[32][1][0][0]='Global';
+I[32][2]='Affecting the whole of the Earth';
+
+I[33] = new Array();
+I[33][1] = new Array();
+I[33][1][0] = new Array();
+I[33][1][0][0]='levels';
+I[33][2]='vertical measurements';
+
+I[34] = new Array();
+I[34][1] = new Array();
+I[34][1][0] = new Array();
+I[34][1][0][0]='manufacture';
+I[34][2]='make (in a factory)';
+
+I[35] = new Array();
+I[35][1] = new Array();
+I[35][1][0] = new Array();
+I[35][1][0][0]='extent';
+I[35][2]='degree';
+
+I[36] = new Array();
+I[36][1] = new Array();
+I[36][1][0] = new Array();
+I[36][1][0][0]='wrecked';
+I[36][2]='ruined';
+
+I[37] = new Array();
+I[37][1] = new Array();
+I[37][1][0] = new Array();
+I[37][1][0][0]='decade';
+I[37][2]='a period of ten years';
+
+I[38] = new Array();
+I[38][1] = new Array();
+I[38][1][0] = new Array();
+I[38][1][0][0]='rise';
+I[38][2]='increase';
+
+I[39] = new Array();
+I[39][1] = new Array();
+I[39][1][0] = new Array();
+I[39][1][0][0]='remaining';
+I[39][2]='what is left';
+
+I[40] = new Array();
+I[40][1] = new Array();
+I[40][1][0] = new Array();
+I[40][1][0][0]='war';
+I[40][2]='military engagement';
+
+I[41] = new Array();
+I[41][1] = new Array();
+I[41][1][0] = new Array();
+I[41][1][0][0]='pedestrians';
+I[41][2]='walkers';
+
+I[42] = new Array();
+I[42][1] = new Array();
+I[42][1][0] = new Array();
+I[42][1][0][0]='freely';
+I[42][2]='without supervision or limitation';
+
+I[43] = new Array();
+I[43][1] = new Array();
+I[43][1][0] = new Array();
+I[43][1][0][0]='gone';
+I[43][2]='disappeared';
+
+I[44] = new Array();
+I[44][1] = new Array();
+I[44][1][0] = new Array();
+I[44][1][0][0]='walking';
+I[44][2]='going on foot';
+
+I[45] = new Array();
+I[45][1] = new Array();
+I[45][1][0] = new Array();
+I[45][1][0][0]='mean';
+I[45][2]='result in';
+
+I[46] = new Array();
+I[46][1] = new Array();
+I[46][1][0] = new Array();
+I[46][1][0][0]='filthy';
+I[46][2]='dirty';
+
+I[47] = new Array();
+I[47][1] = new Array();
+I[47][1][0] = new Array();
+I[47][1][0][0]='detour';
+I[47][2]='diversion';
+
+I[48] = new Array();
+I[48][1] = new Array();
+I[48][1][0] = new Array();
+I[48][1][0][0]='loss';
+I[48][2]='absence';
+
+I[49] = new Array();
+I[49][1] = new Array();
+I[49][1][0] = new Array();
+I[49][1][0][0]='fear';
+I[49][2]='anxiety';
+
+I[50] = new Array();
+I[50][1] = new Array();
+I[50][1][0] = new Array();
+I[50][1][0][0]='goods';
+I[50][2]='merchandise or property';
+
+I[51] = new Array();
+I[51][1] = new Array();
+I[51][1][0] = new Array();
+I[51][1][0][0]='Cyclists';
+I[51][2]='Bike riders';
+
+I[52] = new Array();
+I[52][1] = new Array();
+I[52][1][0] = new Array();
+I[52][1][0][0]='surprising';
+I[52][2]='unexpected';
+
+I[53] = new Array();
+I[53][1] = new Array();
+I[53][1][0] = new Array();
+I[53][1][0][0]='statistics';
+I[53][2]='facts and figures';
+
+I[54] = new Array();
+I[54][1] = new Array();
+I[54][1][0] = new Array();
+I[54][1][0][0]='journey';
+I[54][2]='trip';
+
+I[55] = new Array();
+I[55][1] = new Array();
+I[55][1][0] = new Array();
+I[55][1][0][0]='pedestrians';
+I[55][2]='walkers';
+
+I[56] = new Array();
+I[56][1] = new Array();
+I[56][1][0] = new Array();
+I[56][1][0][0]='run over';
+I[56][2]='knocked down or flattened';
+
+I[57] = new Array();
+I[57][1] = new Array();
+I[57][1][0] = new Array();
+I[57][1][0][0]='constant';
+I[57][2]='continuous';
+
+I[58] = new Array();
+I[58][1] = new Array();
+I[58][1][0] = new Array();
+I[58][1][0][0]='living';
+I[58][2]='existing';
+
+I[59] = new Array();
+I[59][1] = new Array();
+I[59][1][0] = new Array();
+I[59][1][0][0]='quarter';
+I[59][2]='25 %';
+
+I[60] = new Array();
+I[60][1] = new Array();
+I[60][1][0] = new Array();
+I[60][1][0][0]='get';
+I[60][2]='obtain';
+
+I[61] = new Array();
+I[61][1] = new Array();
+I[61][1][0] = new Array();
+I[61][1][0][0]='cost';
+I[61][2]='expense';
+
+I[62] = new Array();
+I[62][1] = new Array();
+I[62][1][0] = new Array();
+I[62][1][0][0]='lower';
+I[62][2]='not so high';
+
+I[63] = new Array();
+I[63][1] = new Array();
+I[63][1][0] = new Array();
+I[63][1][0][0]='company';
+I[63][2]='supplied by an employer';
+
+I[64] = new Array();
+I[64][1] = new Array();
+I[64][1][0] = new Array();
+I[64][1][0][0]='example';
+I[64][2]='instance';
+
+I[65] = new Array();
+I[65][1] = new Array();
+I[65][1][0] = new Array();
+I[65][1][0][0]='expenses';
+I[65][2]='costs';
+
+I[66] = new Array();
+I[66][1] = new Array();
+I[66][1][0] = new Array();
+I[66][1][0][0]='similar';
+I[66][2]='almost the same';
+
+I[67] = new Array();
+I[67][1] = new Array();
+I[67][1][0] = new Array();
+I[67][1][0][0]='earn';
+I[67][2]='gain (money)';
+
+I[68] = new Array();
+I[68][1] = new Array();
+I[68][1][0] = new Array();
+I[68][1][0][0]='travel';
+I[68][2]='cover a distance of';
+
+I[69] = new Array();
+I[69][1] = new Array();
+I[69][1][0] = new Array();
+I[69][1][0][0]='discover';
+I[69][2]='learn or find';
+
+I[70] = new Array();
+I[70][1] = new Array();
+I[70][1][0] = new Array();
+I[70][1][0][0]='faster';
+I[70][2]='quicker';
+
+I[71] = new Array();
+I[71][1] = new Array();
+I[71][1][0] = new Array();
+I[71][1][0][0]='conceal';
+I[71][2]='hide';
+
+I[72] = new Array();
+I[72][1] = new Array();
+I[72][1][0] = new Array();
+I[72][1][0][0]='variations';
+I[72][2]='differences';
+
+I[73] = new Array();
+I[73][1] = new Array();
+I[73][1][0] = new Array();
+I[73][1][0][0]='create';
+I[73][2]='give rise to';
+
+I[74] = new Array();
+I[74][1] = new Array();
+I[74][1][0] = new Array();
+I[74][1][0][0]='located';
+I[74][2]='placed or sited';
+
+I[75] = new Array();
+I[75][1] = new Array();
+I[75][1][0] = new Array();
+I[75][1][0][0]='secondary';
+I[75][2]='for the 11 to 18 age range';
+
+I[76] = new Array();
+I[76][1] = new Array();
+I[76][1][0] = new Array();
+I[76][1][0][0]='peaceful';
+I[76][2]='quiet';
+
+I[77] = new Array();
+I[77][1] = new Array();
+I[77][1][0] = new Array();
+I[77][1][0][0]='extra';
+I[77][2]='additional';
+
+I[78] = new Array();
+I[78][1] = new Array();
+I[78][1][0] = new Array();
+I[78][1][0][0]='gone up';
+I[78][2]='risen';
+
+I[79] = new Array();
+I[79][1] = new Array();
+I[79][1][0] = new Array();
+I[79][1][0][0]='speed';
+I[79][2]='velocity';
+
+I[80] = new Array();
+I[80][1] = new Array();
+I[80][1][0] = new Array();
+I[80][1][0][0]='wasting';
+I[80][2]='using up unnecessarily';
+
+I[81] = new Array();
+I[81][1] = new Array();
+I[81][1][0] = new Array();
+I[81][1][0][0]='private';
+I[81][2]='not publicly owned';
+
+I[82] = new Array();
+I[82][1] = new Array();
+I[82][1][0] = new Array();
+I[82][1][0][0]='buy';
+I[82][2]='purchase';
+
+I[83] = new Array();
+I[83][1] = new Array();
+I[83][1][0] = new Array();
+I[83][1][0][0]='enough';
+I[83][2]='a sufficient number of';
+
+I[84] = new Array();
+I[84][1] = new Array();
+I[84][1][0] = new Array();
+I[84][1][0][0]='manufacture';
+I[84][2]='make';
+
+I[85] = new Array();
+I[85][1] = new Array();
+I[85][1][0] = new Array();
+I[85][1][0][0]='gone down';
+I[85][2]='fallen';
+
+I[86] = new Array();
+I[86][1] = new Array();
+I[86][1][0] = new Array();
+I[86][1][0][0]='fewer';
+I[86][2]='not as many as before';
+
+I[87] = new Array();
+I[87][1] = new Array();
+I[87][1][0] = new Array();
+I[87][1][0][0]='get up';
+I[87][2]='rise from bed';
+
+I[88] = new Array();
+I[88][1] = new Array();
+I[88][1][0] = new Array();
+I[88][1][0][0]='world';
+I[88][2]='universe';
+
+I[89] = new Array();
+I[89][1] = new Array();
+I[89][1][0] = new Array();
+I[89][1][0][0]='quiet';
+I[89][2]='tranquillity';
+
+I[90] = new Array();
+I[90][1] = new Array();
+I[90][1][0] = new Array();
+I[90][1][0][0]='lines';
+I[90][2]='rows';
+
+I[91] = new Array();
+I[91][1] = new Array();
+I[91][1][0] = new Array();
+I[91][1][0][0]='air';
+I[91][2]='oxygen or atmosphere';
+
+I[92] = new Array();
+I[92][1] = new Array();
+I[92][1][0] = new Array();
+I[92][1][0][0]='changed';
+I[92][2]='altered';
+
+I[93] = new Array();
+I[93][1] = new Array();
+I[93][1][0] = new Array();
+I[93][1][0][0]='water';
+I[93][2]='H2O';
+
+I[94] = new Array();
+I[94][1] = new Array();
+I[94][1][0] = new Array();
+I[94][1][0][0]='discover';
+I[94][2]='learn or find';
+
+I[95] = new Array();
+I[95][1] = new Array();
+I[95][1][0] = new Array();
+I[95][1][0][0]='replaced';
+I[95][2]='taken the place of';
+
+I[96] = new Array();
+I[96][1] = new Array();
+I[96][1][0] = new Array();
+I[96][1][0][0]='cheapest';
+I[96][2]='least expensive';
+
+I[97] = new Array();
+I[97][1] = new Array();
+I[97][1][0] = new Array();
+I[97][1][0][0]='faster';
+I[97][2]='quicker';
+
+I[98] = new Array();
+I[98][1] = new Array();
+I[98][1][0] = new Array();
+I[98][1][0][0]='loads';
+I[98][2]='burdens';
+
+I[99] = new Array();
+I[99][1] = new Array();
+I[99][1][0] = new Array();
+I[99][1][0][0]='cheap';
+I[99][2]='inexpensive';
+
+I[100] = new Array();
+I[100][1] = new Array();
+I[100][1][0] = new Array();
+I[100][1][0][0]='built';
+I[100][2]='constructed';
+
+I[101] = new Array();
+I[101][1] = new Array();
+I[101][1][0] = new Array();
+I[101][1][0][0]='accomplished';
+I[101][2]='completed successfully';
+
+I[102] = new Array();
+I[102][1] = new Array();
+I[102][1][0] = new Array();
+I[102][1][0][0]='tubes';
+I[102][2]='underground trains';
+
+I[103] = new Array();
+I[103][1] = new Array();
+I[103][1][0] = new Array();
+I[103][1][0][0]='helmet';
+I[103][2]='protective head-gear';
+
+I[104] = new Array();
+I[104][1] = new Array();
+I[104][1][0] = new Array();
+I[104][1][0][0]='bags';
+I[104][2]='containers for shopping';
+
+I[105] = new Array();
+I[105][1] = new Array();
+I[105][1][0] = new Array();
+I[105][1][0][0]='amounts';
+I[105][2]='quantities';
+
+I[106] = new Array();
+I[106][1] = new Array();
+I[106][1][0] = new Array();
+I[106][1][0][0]='tricycle';
+I[106][2]='like a bicycle, but with three wheels';
+
+I[107] = new Array();
+I[107][1] = new Array();
+I[107][1][0] = new Array();
+I[107][1][0][0]='various';
+I[107][2]='different';
+
+I[108] = new Array();
+I[108][1] = new Array();
+I[108][1][0] = new Array();
+I[108][1][0][0]='change';
+I[108][2]='difference';
+
+I[109] = new Array();
+I[109][1] = new Array();
+I[109][1][0] = new Array();
+I[109][1][0][0]='luggage';
+I[109][2]='baggage';
+
+I[110] = new Array();
+I[110][1] = new Array();
+I[110][1][0] = new Array();
+I[110][1][0][0]='electric';
+I[110][2]='powered by electricity';
+
+I[111] = new Array();
+I[111][1] = new Array();
+I[111][1][0] = new Array();
+I[111][1][0][0]='boxes';
+I[111][2]='rectangular containers';
+
+I[112] = new Array();
+I[112][1] = new Array();
+I[112][1][0] = new Array();
+I[112][1][0][0]='moved';
+I[112][2]='transported';
+
+I[113] = new Array();
+I[113][1] = new Array();
+I[113][1][0] = new Array();
+I[113][1][0][0]='carried';
+I[113][2]='transported';
+
+I[114] = new Array();
+I[114][1] = new Array();
+I[114][1][0] = new Array();
+I[114][1][0][0]='bulk';
+I[114][2]='major part';
+
+I[115] = new Array();
+I[115][1] = new Array();
+I[115][1][0] = new Array();
+I[115][1][0][0]='allow';
+I[115][2]='permit';
+
+I[116] = new Array();
+I[116][1] = new Array();
+I[116][1][0] = new Array();
+I[116][1][0][0]='see';
+I[116][2]='discover or find out';
+
+I[117] = new Array();
+I[117][1] = new Array();
+I[117][1][0] = new Array();
+I[117][1][0][0]='shock';
+I[117][2]='surprise';
+
+I[118] = new Array();
+I[118][1] = new Array();
+I[118][1][0] = new Array();
+I[118][1][0][0]='gone';
+I[118][2]='disappeared';
+
+I[119] = new Array();
+I[119][1] = new Array();
+I[119][1][0] = new Array();
+I[119][1][0][0]='facilities';
+I[119][2]='equipment';
+
+I[120] = new Array();
+I[120][1] = new Array();
+I[120][1][0] = new Array();
+I[120][1][0][0]='cloakroom';
+I[120][2]='a place to leave a coat or other property';
+
+I[121] = new Array();
+I[121][1] = new Array();
+I[121][1][0] = new Array();
+I[121][1][0][0]='smell';
+I[121][2]='odour';
+
+I[122] = new Array();
+I[122][1] = new Array();
+I[122][1][0] = new Array();
+I[122][1][0][0]='memory';
+I[122][2]='recollection';
+
+I[123] = new Array();
+I[123][1] = new Array();
+I[123][1][0] = new Array();
+I[123][1][0][0]='left';
+I[123][2]='departed from';
+
+I[124] = new Array();
+I[124][1] = new Array();
+I[124][1][0] = new Array();
+I[124][1][0][0]='remove';
+I[124][2]='get rid of';
+
+I[125] = new Array();
+I[125][1] = new Array();
+I[125][1][0] = new Array();
+I[125][1][0][0]='suburb';
+I[125][2]='district';
+
+I[126] = new Array();
+I[126][1] = new Array();
+I[126][1][0] = new Array();
+I[126][1][0][0]='finally';
+I[126][2]='eventually';
+
+
+Text = new Array();
+Text[0]='When I first saw nature ';
+Text[1]=' I was surprised how herbivores would graze within sight of lions. I had imagined that if they spotted a predator they would run as ';
+Text[2]=' away as possible. Instead they share the same terrain and only ';
+Text[3]=' when a lion attacks. Once the kill is made, calm returns and they ';
+Text[4]=' their grazing. Like the herbivores of the savannah, we too have become accustomed to sharing our living space with a ';
+Text[5]=' predator. When it claims another victim we are momentarily ';
+Text[6]=' and twist our necks to look as we drive past the mangled metal and bodies on stretchers - but then we move on and a few miles later have become once again ';
+Text[7]=' to the danger. That predator is of course humanity\'s worst invention: the ';
+Text[8]='. <br /><br />An Invention that Kills 3 Million a Year<br /><br />Accidents are not the only way that cars ';
+Text[9]=' us but they are a good place to start. The World Health Organisation says that the leading injury-related cause of ';
+Text[10]=' among people aged 15-44 years is traffic injuries. About 1 million 100 thousand people every year are ';
+Text[11]=' worldwide; a further 39 million a year are ';
+Text[12]='. It is extraordinary how little it ';
+Text[13]=' us. On Britain\'s motorways it is routine to drive past a ';
+Text[14]=' crash. How many of us would feel happy about ';
+Text[15]=' if it were an equally common experience to wait at the end of the runway while police swept away the debris of a previous plane?<br /><br />Cars kill even more people through ';
+Text[16]=' and negative effects on our lifestyle. Each year 3 million people die from the ';
+Text[17]=' of air pollution, most of which is due to traffic. If accidents and pollution don\'t get you, then just sitting in your car, may. ';
+Text[18]=' say we need at least half an hour of moderate exercise five times a week to stay ';
+Text[19]='. Without a car you will probably get that much just by walking to work, ';
+Text[20]=' or the shops. But with a car it\'s easy to do almost no ';
+Text[21]=' at all. Two thirds of British adults over 30 are ';
+Text[22]=' - the main reasons being bad diet and lack of exercise. Rising levels of obesity are causing a rapid ';
+Text[23]=' in deaths from diabetes, which have now reached 33,000 a year in the UK.<br /><br />Adding together deaths from accidents and disease, cars are killing at least 3 ';
+Text[24]=' people a year worldwide.<br /><br />Environmental Melt Down and Oil Wars<br /><br />Exhaust fumes, road building, car manufacture and the ';
+Text[25]=' industry, all contribute to a general environmental ';
+Text[26]=' affecting not just humans but other animals and plants. Roads ';
+Text[27]=' habitats and disrupt the movement of animals. Frogs, toads and newts are ';
+Text[28]=' across the globe and 32 percent of all amphibian species face ';
+Text[29]='. Habitat loss and pollution are the main threats but many also die simply through ';
+Text[30]=' roads to reach their breeding grounds. Amphibians are more sensitive to ';
+Text[31]=' in the environment than other groups of animals, so their plight is also an early ';
+Text[32]=' to us of how badly the Earth is being harmed.<br /><br />';
+Text[33]=' warming will do even greater damage through rapid climate change and rising sea ';
+Text[34]='. The fossil fuels used to ';
+Text[35]=' and fuel cars are a major contributor to greenhouse gases. If the whole world adopted the car to the ';
+Text[36]=' that the USA has, we would need 5 or 6 times the amount of oil produced today. At such rates the climate would be ';
+Text[37]=' and oil run out in less than a ';
+Text[38]='. In practice if the demand for oil continues to ';
+Text[39]=' the price will soar. Powerful countries will then scramble to secure the ';
+Text[40]=' supplies for themselves, establishing military bases in the oil producing regions and going to ';
+Text[41]=' if necessary.<br /><br />Blighted Towns<br /><br />Throughout history until the 20th century, the streets belonged to ';
+Text[42]=' and occasional animal-drawn carts. As a result children could play outside and roam ';
+Text[43]='. The car has taken away this liberty and put children under house arrest: the freedom to play in front of their homes ';
+Text[44]=' in one generation. <br /><br />Noise, smoke, smell, dust and danger make ';
+Text[45]=' near busy roads intimidating. A moment of thoughtlessness can ';
+Text[46]=' death. Pedestrian routes near busy roads are typically grim ';
+Text[47]=' places, often involving a ';
+Text[48]=' through a labyrinth of bridges and tunnels. With fewer pedestrians there is a ';
+Text[49]=' of community and a heightened ';
+Text[50]=' of crime (cars even facilitate some crimes - a bicycle is not so convenient for kidnap or moving stolen ';
+Text[51]='). <br /><br />';
+Text[52]=' have been driven off the roads by motor traffic. Six times more miles were cycled in the UK in 1952 than are today. The decline is not ';
+Text[53]=' given how dangerous cycling and walking are according to government ';
+Text[54]='. For the same length of journey cyclists are ten times more likely to be killed and walkers fifteen times more likely, than if the ';
+Text[55]=' was made by car. Cyclists and ';
+Text[56]=' are not crashing wildly into lampposts and trees - the statistics are for accidents involving at least one \'motor vehicle\' - they are being ';
+Text[57]=' by the cars!<br /><br />All cities are now cursed with the ';
+Text[58]=' background noise of traffic. Studies show that ';
+Text[59]=' with this noise raises children\'s blood pressure and stress levels. In the Indian city of Bangalore, nearly a ';
+Text[60]=' of the police force are suffering from hearing disabilities due to traffic noise.<br /><br />\u00A3130 billion - How would you spend it?<br /><br />What do cars cost us and what do we ';
+Text[61]=' for the money? The UK motoring organisation the RAC estimates the average ';
+Text[62]=' of buying and running a car at over \u00A35000 per year. Government figures for household spending on cars are ';
+Text[63]=' because most cars (65%) are bought by companies or public bodies. One in ten cars is a ';
+Text[64]=' car and they do a quarter of all mileage! Usually they are sold on after a year or two (many households own a former company car). There are other costs too: for ';
+Text[65]=', road accidents cost \u00A316,000 million per year in terms of lost production, health-care, social benefits and similar ';
+Text[66]='. In the USA costs are ';
+Text[67]=', the average household spending about 20% of its income for each vehicle it owns.<br /><br />At least 8 hours of the working week are used to ';
+Text[68]=' what motoring costs us. In the UK on average, we ';
+Text[69]=' 110 miles a week by car taking about 4\u00BD hours. If we divide the distance travelled by the total time we have spent paying for the car and driving it (8+ 4\u00BD = 12\u00BD hours), we ';
+Text[70]=' that the average speed is less than 9mph. A bicycle would go ';
+Text[71]=' - however note that averages do ';
+Text[72]=' wide ';
+Text[73]=' in income and in miles travelled in particular weeks.<br /><br />Cars ';
+Text[74]=' more need for travel. Work, schools and shops tend to be ';
+Text[75]=' further away than they used to: the average journey to ';
+Text[76]=' school went up by over 30% in a decade. Many leisure trips are made to get to somewhere unpolluted and ';
+Text[77]='. How much unnecessary ';
+Text[78]=' travel have cars caused us? In Britain the average distance a person travels every year (excluding air travel) has ';
+Text[79]=' from 1000 miles fifty years ago to 6800 miles today. If half of today\'s car travel turned out to be unnecessary waste caused by the cars themselves, the average ';
+Text[80]=' for the useful part of the journey would be only 4mph! You might as well walk.<br /><br />How much money are we ';
+Text[81]=' on this useless means of transport? There are 26 million ';
+Text[82]=' cars in Britain so if the average cost is \u00A35000 per car, we are spending \u00A3130 billion a year. What else could we ';
+Text[83]=' with \u00A3130 billion? Well \u00A330 billion buys ';
+Text[84]=' windmills to supply all homes in the UK with electricity - the unwanted car factories could ';
+Text[85]=' them. That still leaves us with \u00A3100 billion to spend in the first year! Next year there\'s another \u00A3130 billion to spend - in fact even more because spending on gas and coal has ';
+Text[86]=' thanks to the windmills and our health system is cheaper because there are ';
+Text[87]=' accidents.<br /><br />A Car Free World<br /><br />Imagine that you ';
+Text[88]=' one morning to find that the car has been de-invented. Welcome to car-free ';
+Text[89]='! Let\'s go out and explore. <br /><br />The first thing you notice on opening the front door is the ';
+Text[90]=': you hear only birdsong and the footsteps of a passer by. Next you notice that there are no ';
+Text[91]=' of parked cars and that the ';
+Text[92]=' is fresher. The houses in the street have ';
+Text[93]=' a bit too. For starters they all have solar collectors on the roof for both hot ';
+Text[94]=' and electricity, paid for from the savings made in the first two years after going car-free.<br /><br />During the course of the day you ';
+Text[95]=' that what has primarily ';
+Text[96]=' the car is the bicycle. Bicycles are the ';
+Text[97]=' way of providing door-to-door personal transportation that is ';
+Text[98]=' than walking and can carry heavier ';
+Text[99]='. Most people already had a bike in their shed. Those who didn\'t could buy a ';
+Text[100]=' one for little more than it used to cost to fill their cars with petrol. Bicycles really came into their own when the \'cycle expressways\' were ';
+Text[101]='. These allowed a 5-mile commute to be ';
+Text[102]=' in well under 30 minutes, making bikes faster than buses or ';
+Text[103]=' for most journeys.<br /><br />Borrowing a bike you set out to visit the shops. When you get there, an attendant in a sort of \'bicycle cloakroom\' takes your bike and ';
+Text[104]=' and gives you a token to retrieve them with. Your bike has pannier ';
+Text[105]=' but you are interested to know how people carry larger ';
+Text[106]=' of shopping. Looking about, you see a man loading bags onto a ';
+Text[107]=' with a substantial luggage carrier. Next you notice several shoppers going home pushing ';
+Text[108]=' designs of trolley; ramps and lifts have been provided where there is a ';
+Text[109]=' of level, making this as easy as using an airport ';
+Text[110]=' trolley.<br /><br />On your ride home you catch up with an ';
+Text[111]=' van proceeding at its maximum speed of 6mph. When it stops to make a delivery, you ask the driver why many of the items seem to be in standard-sized ';
+Text[112]='. She explains that goods are often now ';
+Text[113]=' in mini-containers. Low-speed electric vehicles like hers collect and deliver them but if sent over any distance, they will be ';
+Text[114]=' by trains for the ';
+Text[115]=' of the journey. The standard sizes ';
+Text[116]=' mechanised transhipment and sorting while in transit. You say goodbye and decide that it\'s time to ';
+Text[117]=' what has happened to the railways. <br /><br />Arriving at the station on the nearby local suburban line is a bit of a ';
+Text[118]='. The vandalised bus-shelter that had replaced the original Victorian building has ';
+Text[119]='. Instead there is a splendid new station with heated waiting rooms, a caf\u00E9, toilets, baby changing ';
+Text[120]=', and ramps and lifts for wheeled access. And of course, there is a bike \'';
+Text[121]='\' \u2026 doesn\'t everywhere have them? <br /><br />As you cycle away from the station, there is an acrid ';
+Text[122]=' of exhaust and a roar of traffic. You leap off the bike and drag it onto the pavement just in time to escape death under the wheels of a 4x4. There are flowers tied to a lamppost beside you and a note, which reads, "In loving ';
+Text[123]=' of Bobby, aged 8." <br /><br />You\'ve ';
+Text[124]=' car-free world and the question on your mind is "how do I get back?" Giving up your own car won\'t ';
+Text[125]=' the others \u2026 and Venice is too far to commute. So it\'s time we asked our government for a real choice: a car-free ';
+Text[126]=' in every town.  Then we can begin to create our future car-free world during the years until climate change ';
+Text[127]=' convinces the rest of humanity to make its \'worst invention\' extinct.<br /><br />[The above text was written by my brother, Donald Power, in March 2006]<br /><br /><br />REFERENCES AND SOURCES:<br /><br />Important sources of data consulted include:<br /><br />\u00B7	The World Health Organisation: Traffic accident deaths and traffic pollution.<br />\u00B7	The Guardian and www.diabetes.co.uk  : Diabetes deaths.<br />\u00B7	The Ramblers Association: Walking. <br />\u00B7	The BBC on-line: Traffic pollution and noise.<br />\u00B7	The Washington Post, The PA Fish & Boat Commission and The Road Ecology Center: Amphibians and road kill.<br />\u00B7	The RAC Motor Index: Costs of Motoring.<br />\u00B7	UK Government Statistics (www.statistics.gov.uk), Department of Transport statistics, DVLA: Household expenditure on cars, distances travelled, accident statistics for cars, bikes, etc.<br />\u00B7	Houses of Parliament and ETA: Number of company cars, proportion with free fuel, mileage. <br />\u00B7	Consumer Expenditure Survey, Bureau of Labour Statistics, www.detroittransit.org : American household spending on cars.<br />\u00B7	ROSPA (www.rospa.org.uk): Cost of UK road accidents.<br />\u00B7	"How We Can Save the Planet", Hillman: Wind energy data. I used this data to deduce the 30bn figure to produce enough electricity for all UK homes, based on 30,000 1.3MW onshore turbines and assuming a cost of \u00A31m each. <br />\u00B7	The Society of Motor Manufacturers and Traders (SMMT): Size and turnover of automotive industry, new car sales data. SMMT give turnover for the UK Automotive Manufacturing, Distribution and Servicing business as in excess of \u00A3180 billion, supporting 800,000 jobs, which matches up well with the \u00A3130bn figure I give as the cost of private cars.<br />\u00B7	Professional Engineering (January 2006): Gives costs of solar water and PV as follows: Domestic solar water heating \u00A32000-\u00A33000 including installation, providing all hot water in summer and 50% in winter; Solar Photovoltaic \u00A34000-\u00A39000 per kW installed (a 2kW system would produce almost 50% of average household electricity). The \u00A3130bn a year saved by getting rid of cars represents about \u00A35000 per household. With economies of scale this should easily pay for both such systems in one to two years. <br />';
+
+
+State = new Array();
+
+function StartUp(){
+
+	var i = 0;
+
+
+
+	State.length = 0;
+	for (i=0; i<I.length; i++){
+		State[i] = new Array();
+		State[i][0] = 0; // clue asked for or not
+		State[i][1] = 0; // hints asked for, or penalties for checking a wrong answer
+		State[i][2] = 0; // length of answer matched
+		State[i][3] = 0; // score for this item
+		State[i][4] = 0; // already answered correctly 
+		State[i][5] = ''; // answer entered in text box (right or not)
+	}
+	BuildExercise();
+	WriteFeedback(Instructions);
+	DisplayExercise();
+
+
+
+
+
+}
+
+function TrimString(InString){
+        var x = 0
+
+        if (InString.length != 0) {
+                while ((InString.charAt(InString.length - 1) == '\u0020') || (InString.charAt(InString.length - 1) == '\u000A') || (InString.charAt(InString.length - 1) == '\u000D')){
+                        InString = InString.substring(0, InString.length - 1)
+                }
+
+                while ((InString.charAt(0) == '\u0020') || (InString.charAt(0) == '\u000A') || (InString.charAt(0) == '\u000D')){
+                        InString = InString.substring(1, InString.length)
+                }
+
+                while (InString.indexOf('  ') != -1) {
+                        x = InString.indexOf('  ')
+                        InString = InString.substring(0, x) + InString.substring(x+1, InString.length)
+                 }
+
+                return InString;
+        }
+
+        else {
+                return '';
+        }
+
+}
+
+function CheckAnswers(){
+
+	SaveCurrentAnswers();
+	var AllCorrect = 1;
+
+//Check each answer
+	for (var i = 0; i< I.length; i++){
+
+		if (State[i][4] != 1){
+//If it's right, calculate its score
+			if (CheckAnswer(i, true) > -1){
+				var TotalChars = GetGapValue(i).length;
+				State[i][3] = (TotalChars-State[i][1])/TotalChars;
+				if (State[i][0] > 0){State[i][3] = State[i][3]/2;}
+				if (State[i][3]<0){State[i][3] = 0;}
+				State[i][4] = 1;
+			}
+			else{
+//Otherwise, add zero to the array and increment the hints for this item, as a penalty
+				State[i][1]++;
+				State[i][3] = 0;
+
+//then set the flag
+				AllCorrect = 0;
+			}
+		}
+	}
+
+//Calculate the total score
+	var TotalScore = 0;
+	for (i=0; i<State.length; i++){
+		TotalScore += State[i][3];
+	}
+	TotalScore = Math.floor((TotalScore * 100)/I.length);
+
+//Compile the output
+	Output = '';
+
+	if (AllCorrect == 1){
+		Output = Correct + '<br />';
+	}
+
+	Output += YourScoreIs + ' ' + TotalScore + '%.<br />';
+	if (AllCorrect == 0){
+		Output += '<br />' + Incorrect;
+	}
+	BuildExercise();
+	WriteFeedback(Output);
+
+
+
+	DisplayExercise();
+	RestoreCurrentAnswers();
+}
+
+
+function TrackFocus(BoxNumber){
+	CurrentWord = BoxNumber;
+}
+
+function CheckBeginning(Guess, Answer){
+	var OutString = '';
+	var i = 0;
+	var UpperGuess = '';
+	var UpperAnswer = '';
+
+	if (CaseSensitive == false) {
+		UpperGuess = Guess.toUpperCase();
+		UpperAnswer = Answer.toUpperCase();
+	}
+	else {
+		UpperGuess = Guess;
+		UpperAnswer = Answer;
+	}
+
+	while (UpperGuess.charAt(i) == UpperAnswer.charAt(i)) {
+		OutString += Guess.charAt(i);
+		i++;
+	}
+	OutString += Answer.charAt(i);
+	return OutString;
+}
+
+function FindLongest(InArray){
+	if (InArray.length < 1){return -1;}
+
+	var Longest = 0;
+	for (var i=1; i<InArray.length; i++){
+		if (InArray[i].length > InArray[Longest].length){
+			Longest = i;
+		}
+	}
+	return Longest;
+}
+
+function GetGapValue(GNum){
+	var RetVal = '';
+	if ((GNum<0)||(GNum>=I.length)){return RetVal;}
+	if (eval('BottomFrame.document.Cloze.Gap' + GNum) != null){
+		RetVal = eval('BottomFrame.document.Cloze.Gap' + GNum).value;
+		RetVal = TrimString(RetVal);
+	}
+	else{
+		RetVal = State[GNum][5];
+	}
+	return RetVal;
+}
+
+function SetGapValue(GNum, Val){
+	if ((GNum<0)||(GNum>=I.length)){return;}
+	if (eval('BottomFrame.document.Cloze.Gap' + GNum) != null){
+		eval('BottomFrame.document.Cloze.Gap' + GNum).value = Val;
+	}
+}
+
+function FindCurrent() {
+	var x = 0;
+	FoundCurrent = -1;
+
+//Test the current word:
+//If it's state is not set to already correct, check the word.
+	if (State[CurrentWord][4] != 1){
+		if (CheckAnswer(CurrentWord, false) < 0){
+			return CurrentWord;
+		}
+	}
+	
+	x=CurrentWord + 1;
+	while (x<I.length){
+		if (State[x][4] != 1){
+			if (CheckAnswer(x, false) < 0){
+				return x;
+			}
+		}
+	x++;	
+	}
+
+	x = 0;
+	while (x<CurrentWord){
+		if (State[x][4] != 1){
+			if (CheckAnswer(x, false) < 0){
+				return x;
+			}
+		}
+	x++;	
+	}
+	return FoundCurrent;
+}
+
+function CheckAnswer(GapNum, MarkAnswer){
+	var Guess = GetGapValue(GapNum);
+	var UpperGuess = '';
+	var UpperAnswer = '';
+	if (CaseSensitive == false){
+		UpperGuess = Guess.toUpperCase();
+	}
+	else{
+		UpperGuess = Guess;
+	}
+	var Match = -1;
+	for (var i = 0; i<I[GapNum][1].length; i++){
+		if (CaseSensitive == false){
+			UpperAnswer = I[GapNum][1][i][0].toUpperCase();
+		}
+		else{
+			UpperAnswer = I[GapNum][1][i][0];
+		}
+		if (TrimString(UpperGuess) == UpperAnswer){
+			Match = i;
+			if (MarkAnswer == true){
+				State[GapNum][4] = 1;
+			}
+			State[GapNum][5] = Guess;
+		}
+	}
+	return Match;
+}
+
+function GetHint(GapNum){
+	Guess = GetGapValue(GapNum);
+
+	if (CheckAnswer(GapNum, false) > -1){return ''}
+	RightBits = new Array();
+	for (var i=0; i<I[GapNum][1].length; i++){
+		RightBits[i] = CheckBeginning(Guess, I[GapNum][1][i][0]);
+	}
+	var RightOne = FindLongest(RightBits);
+	var Result = I[GapNum][1][RightOne][0].substring(0,RightBits[RightOne].length);
+//Add another char if the last one is a space
+	if (Result.charAt(Result.length-1) == ' '){
+		Result = I[GapNum][1][RightOne][0].substring(0,RightBits[RightOne].length+1);
+	}
+	return Result;
+}
+
+function ShowHint(){
+	var CurrGap = FindCurrent();
+	if (CurrGap < 0){return;}
+
+	var HintString = GetHint(CurrGap);
+
+	if (HintString.length > 0){
+		SetGapValue(CurrGap, HintString);
+		State[CurrGap][1] = State[CurrGap][1] + 1;
+	}
+	WriteFeedback(GiveHint);
+}
+
+
+
+
+function Blank(){
+	return '<html><body>&copy;Half-Baked Software. Loading...</body></html>';
+}
+
+//-->
+
+//]]>
+
+</script>
+
+
+</head>
+<!--<body>Fool those dumb ad-inserting ISPs</body>-->
+
+<!--For full XHTML 1.0 compatibility, remove the border and framespacing attributes.
+These are required for proper display in current browsers, but render the document incompatible. Then, you'll need to add the appropriate Document Type Declaration; use
+the W3C XHTML 1 frameset DTD.-->
+
+
+<frameset rows="25%,*" framespacing="0" border="0" onload="StartUp()">
+	<frame src="javascript:parent.Blank()" frameborder="0" name="TopFrame"></frame>
+	<frame src="javascript:parent.Blank()" frameborder="0" name="BottomFrame"></frame>
+</frameset>
+
+
+
+
+</html>
